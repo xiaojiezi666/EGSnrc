@@ -1,0 +1,22 @@
+### EGSnrc code owners
+
+
+### default code owners
+*   @nrc-cnrc/egsnrc
+
+
+### root
+/*  @ftessier
+
+
+### egs++
+/HEN_HOUSE/egs++/sources/egs_radionuclide_source/   @rtownson
+
+
+### beamnrc
+/omega/ @blakewalters
+
+
+### applications
+/HEN_HOUSE/user_codes/egs_app/      @ftessier
+/HEN_HOUSE/user_codes/egs_kerma/    @mainegra
