@@ -1,8 +1,8 @@
 /*
 ###############################################################################
 #
-#  EGSnrc egs++ cavity application array sizes headers
-#  Copyright (C) 2015 National Research Council Canada
+#  EGSnrc egs++ egs_kerma application array sizes headers
+#  Copyright (C) 2016 National Research Council Canada
 #
 #  This file is part of EGSnrc.
 #
@@ -21,7 +21,7 @@
 #
 ###############################################################################
 #
-#  Author:          Iwan Kawrakow, 2005
+#  Author:          Ernesto Mainegra-Hing, 2016
 #
 #  Contributors:
 #
@@ -42,6 +42,6 @@
 #define ARRAY_SIZES_
 
 #define MXMED   20
-#define MXSTACK 10000
+#define MXSTACK 2000000
 
 #endif
