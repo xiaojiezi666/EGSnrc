@@ -1,0 +1,29 @@
+/* Paragraphs */
+p {
+    font-size: 1.15rem;
+    width: 100%;
+}
+/* Code style */
+div.line {
+    font-size: 1.15rem;
+}
+/* Body */
+body{
+    width: 100%;
+    font-size: 1.15rem;
+}
+/* Equations: Font size defined in Doxyfile */
+/*p.formulaDsp {
+    text-align: left;
+}
+p.formulaInl {
+    font-size: 1.15rem;
+}*/
+/* Parameters */
+.params{
+    font-size: 1.15em;
+}
+/* Link Styling */
+a.el {
+	font-size: 1.15rem;
+}
