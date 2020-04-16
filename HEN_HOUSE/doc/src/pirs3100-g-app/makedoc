@@ -42,7 +42,6 @@ if test "x$my_machine" = x; then
  my_machine=template
 fi
 
-#if test ! -d "$egs_home"; then
 if test -d "$eh"; then
  cd $eh/g
  make fortran

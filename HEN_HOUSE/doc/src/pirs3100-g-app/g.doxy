@@ -87,13 +87,14 @@ of 70 is obtained for a 600 keV calculation in air. At around the same time, the
 calculation for more than one energy was added, giving the user the possibility to request a 
 linear or a logarithmic energy grid.
 
-In January 2017, the AUSGAB routine was refined to properly classify sub-threshold events as either radiative or non-radiative during atomic relaxations 
-following photoeffect, Compton scattering, and electron impact ionization (version change to 1.4).
+In January 2017, the AUSGAB routine was refined to properly classify sub-threshold events as either 
+radiative or non-radiative during atomic relaxations following photoeffect, Compton scattering, and 
+electron impact ionization (version change to 1.4).
 According to this scheme, sub-threshold Auger electrons are added to the kerma calculation 
 (non-radiative) and sub-threshold fluorescent photons are included as part of the energy lost 
 to radiative events.
 
-The current version fixes a bug in the calculation of \g for both calculation types when the photon's 
+The current version (1.5) fixes a bug in the calculation of \g for both calculation types when the photon's 
 energy is sampled from an energy spectrum. It also provides a cleaner output and an option for
 more verbose output.
 
@@ -101,23 +102,30 @@ more verbose output.
 
 \subsection g_charged Radiation yield Y
 
-Radiation yield Y(\T0) of a charged particle is defined as the fraction of its initial kinetic energy \T0 that is emitted as electromagnetic radiation through the slowing down process of that particle in a medium. For light charged particles, bremsstrahlung, fluorescence after impact ionization and in-flight annihilation (in the case of positrons) are the interactions responsible for the emission of electromagnetic radiation. For the calculation of Y, the \c g application scores the energy radiated per charged particle after these interactions, \Erad, and computes Y using the expression
+Radiation yield Y(\T0) of a charged particle is defined as the fraction of its initial kinetic energy \T0 that is 
+emitted as electromagnetic radiation through the slowing down process of that particle in a medium. For light charged 
+particles, bremsstrahlung, fluorescence after impact ionization and in-flight annihilation (in the case of positrons) 
+are the interactions responsible for the emission of electromagnetic radiation. For the calculation of Y, the \c g 
+application scores the energy radiated per charged particle after these interactions, \Erad, and computes Y using the expression
 
 \f[
      Y = \frac{\overline{E}\mathrm{rad}}{T_0}.
 \f]
 
-In adition to Y, \b g also outputs \f$Y_\mathrm{brems}\f$, the radiative energy fraction due only to bremsstrahlung events to assess the approximation incurred when ignoring all other interactions as has
-been customarily done in the past.
+In adition to Y, \b g also outputs \f$Y_\mathrm{brems}\f$, the radiative energy fraction due only to bremsstrahlung events to assess 
+the approximation incurred when ignoring all other interactions as has been customarily done in the past.
 
 \subsection g_photons Radiative fraction, mass energy transfer and mass energy absorption coefficients
 
 These calculations estimate the kinetic photon energy transferred to charged particles, \Etr,
 and the kinetic energy lost by charged particles via radiative events, \Erad. Atomic relaxation 
 events after electron impact ionization (EII), leading to fluoresence are classified as part of the radiative loss.
-Primary photons are killed after interacting in the medium, while radiative photons (bremsstrahlung, annihilation photons, fluorescent photons after EII) are immediately discarded after their energy is scored as part of \Erad. Electrons are followed as they slow down in the medium until their 
+Primary photons are killed after interacting in the medium, while radiative photons (bremsstrahlung, annihilation photons, 
+fluorescent photons after EII) are immediately discarded after their energy is scored as part of \Erad. Electrons are followed 
+as they slow down in the medium until their 
 energy falls below the transport cut-off energy ECUT. Especial attention is paid to sub-threshold
-relaxation particles. In the case of sub-threshold non-radiative events after Compton or photoeffect, the energy of the Auger electrons is scored as part of \Etr. Furthermore, sub-threshold fluorescent photons after EII are scored as part of \Erad.
+relaxation particles. In the case of sub-threshold non-radiative events after Compton or photoeffect, the energy of the Auger 
+electrons is scored as part of \Etr. Furthermore, sub-threshold fluorescent photons after EII are scored as part of \Erad.
 
 The mass energy transfer coefficient, \mutr_rho for a monoenegetic photon beam of energy E 
 can be calculated using the expression 
