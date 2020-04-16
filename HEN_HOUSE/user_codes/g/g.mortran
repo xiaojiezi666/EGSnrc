@@ -1182,11 +1182,11 @@ $INTEGER ival;
 REPLACE {$NENSRC} WITH {1000};
 
 $INTEGER mono;
-$INTEGER nensrc,mode,iqi,source_type;
+$INTEGER nensrc,mode,iqi;
 $REAL    ensrcd(0:$NENSRC),srcpdf($NENSRC),srcpdf_at($NENSRC);
 $INTEGER srcbin_at($NENSRC);
 $INTEGER i;
-$REAL    ei,eave,sum,ui,vi,wi,angle,rbeam,distance;
+$REAL    ei,eave,sum,ui,vi,wi;
 real*8   esum,esum2,ecount,aux,aux2;
 
 $INTEGER ounit;
@@ -1204,8 +1204,7 @@ $REAL    e_min, e_max;
 $INTEGER itimes;
 
 save     mono,nensrc,mode,ensrcd,srcpdf,srcpdf_at,srcbin_at,eave,sum,
-         esum,esum2,ecount,ei,iqi,ui,vi,wi,angle,rbeam,distance,
-         source_type,eik;
+         esum,esum2,ecount,ei,iqi,ui,vi,wi,eik;
 
 character*256 spec_file;
 
@@ -1362,58 +1361,6 @@ ELSE [
 
 ]
 
-ival                   = ival + 1;
-values_sought(ival)    = 'SOURCE TYPE';
-type(ival)             = 0;
-nvalue(ival)           = 1;
-value_min(ival)        = 0;
-value_max(ival)        = 1;
-default(ival)          = 0;
-$GET_INPUT(ival);
-source_type = value(ival,1);
-
-IF( source_type = 0 ) [
-
-    ival                   = ival + 1;
-    values_sought(ival)    = 'INCIDENT ANGLE';
-    type(ival)             = 0;
-    nvalue(ival)           = 1;
-    value_min(ival)        = 0;
-    value_max(ival)        = 90;
-    default(ival)          = 0;
-    $GET_INPUT(ival);
-    angle = value(ival,1);
-    wi = angle/180*PI; wi = cos(wi);
-    ui = sqrt((1-wi)*(1+wi)); vi = 0;
-    write(6,*) ' ui vi wi = ',ui,vi,wi;
-
-]
-ELSE IF( source_type = 1 ) [
-
-    ival                   = ival + 1;
-    values_sought(ival)    = 'SOURCE RBEAM';
-    type(ival)             = 0;
-    value_min(ival)        = 0;
-    value_max(ival)        = 1e8;
-    default(ival)          = 1;
-    $GET_INPUT(ival);
-    rbeam = value(ival,1);
-
-    ival                   = ival + 1;
-    values_sought(ival)    = 'SOURCE DISTANCE';
-    type(ival)             = 0;
-    value_min(ival)        = 0;
-    value_max(ival)        = 1e8;
-    default(ival)          = 100;
-    $GET_INPUT(ival);
-    distance = value(ival,1);
-
-]
-ELSE [
-    write(6,*) ' Unknown source type!';
-    stop;
-]
-
 return;
 
 entry source_sumry(ounit);
@@ -1429,9 +1376,9 @@ write(ounit,'(a,$)')
 IF( iqi = -1 )     [ write(ounit,'(a)') 'Electron'; ]
 ELSE IF( iqi = 0 ) [ write(ounit,'(a)') 'Photon'; ]
 ELSE               [ write(ounit,'(a)') 'Positron'; ]
-write(ounit,'(a,i2)')
-  ' Incident spectrum            : ',mono;
 IF( mono ~= 1 ) [
+ write(ounit,'(a)')
+  ' Incident beam                : monoenergetic';
  IF (neis = 1)[
   write(ounit,'(a,$)')
   ' Incident kinetic energy (MeV): ';
@@ -1439,23 +1386,14 @@ IF( mono ~= 1 ) [
  ]
 ]
 ELSE [
-write(ounit,'(a,f10.5)')
- ' Average spectrum energy (MeV): ',eave;
-write(ounit,'(a,f10.5)')
- ' Maximum spectrum energy (MeV): ',ensrcd(nensrc);
+ write(ounit,'(a)')
+  ' Incident beam                : spectrum';
+ write(ounit,'(a,f10.5)')
+ ' Average energy (MeV): ',eave;
+ write(ounit,'(a,f10.5)')
+ ' Maximum energy (MeV): ',ensrcd(nensrc);
 ] "end of spectrum block"
-write(ounit,'(a,i2)')
- ' Source type                  : ',source_type;
-IF( source_type = 0 ) [
-write(ounit,'(a,f7.4)')
-  ' Incident angle               : ',angle;
-]
-ELSE [
-write(ounit,'(a,f7.4)')
-  ' Beam size on front face      : ',rbeam;
-write(ounit,'(a,f7.4)')
-  ' Source-face distance         : ',distance;
-]
+
 write(ounit,'(//)');
 
 return;
@@ -1514,18 +1452,9 @@ ecount = ecount + 1;
 esum = esum + eik;
 esum2 = esum2 + eik*eik;
 
-IF( source_type = 0 ) [
-    xin = 0; uin = 0; zin = 0;
-    uin = ui; vin = vi; win = wi;
-]
-ELSE [
-    $RANDOMSET r; r = rbeam*sqrt(r);
-    $RANDOMSET phi; phi = 2*phi*PI;
-    xin = r*cos(phi); yin = r*sin(phi);
-    aux = 1/sqrt(xin*xin + yin*yin + distance*distance);
-    uin = xin*aux; vin = yin*aux; win = distance*aux;
-    zin = 0;
-]
+"The position and direction doesn't matter in an infinite space"
+xin = 0; uin = 0; zin = 0;
+uin = 0; vin = 0; win = 1;
 
 return;
 
@@ -1626,7 +1555,11 @@ DO icase=1,ncase [
     sume = sume + ee; sume2 = sume2 + ee*ee;
     ee = ee*(gbr2-gbr1) + (1-gbr2)*ein;
     IF( ein > 2*prm & gbr1 > 0 ) [ ee = ee + gbr1*(ein-2*prm); ]
-    ee = ee/gmfp/rho(medium);
+    IF(gmfp > 0) [
+       ee = ee/gmfp/rho(medium);
+    ] ELSE [
+       ee = 0;
+    ]
     sumtr = sumtr + ee; sumtr2 = sumtr2 + ee*ee;
   ]
   ELSE [ sumr = sumr + 1; sumr2 = sumr2 + 1; ]
