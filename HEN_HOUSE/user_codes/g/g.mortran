@@ -141,6 +141,7 @@ C> @param Eave  average energy of incident spectrum: either actual or sampled
 %M
 !NOCOMMENTS;
 
+REPLACE {$VERSION} WITH {'1.5'}
 "---------------------------------------------------------------------"
 "STEP 1:  USER-OVERRIDE-OF-EGSnrc-MACROS                              "
 "---------------------------------------------------------------------"
@@ -271,9 +272,9 @@ OUTPUT; (' CALL HATCH to get cross-section data'/);
 CALL HATCH;
 
 write(*,'(//)');
-write(*,*) '******************************************';
-;OUTPUT;  ('* Start g value calculation: Version 1.5 *');
-write(*,*) '******************************************';
+write(*,*) '************************************';
+write(*,*) '* Start g calculation: Version '//$VERSION//' *';
+write(*,*) '************************************';
 OUTPUT (media(j,1),j=1,24);(/'          MEDIUM is: ',24A1/);
 ;OUTPUT AE(1)-PRM, AP(1);
 (' knock-on electrons can be created and any electron followed down to'
