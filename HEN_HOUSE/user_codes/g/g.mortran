@@ -1340,6 +1340,7 @@ ELSE [
     nvalue(ival)           = 1;
     $GET_INPUT(ival);
     read(char_value(ival,1),'(a)') spec_file;
+    call replace_env(spec_file);
     open(9,file=spec_file,status='old');
     read(9,*); "i.e. ignore the title"
     read(9,*) nensrc,ensrcd(0),mode;
