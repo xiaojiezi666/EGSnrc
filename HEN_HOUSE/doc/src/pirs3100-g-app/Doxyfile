@@ -227,15 +227,15 @@ ALIASES                = "internwarning=\par Warning:\n This class is not part o
                          "BW=\author Blake Walters, NRC" \
                          "RT=\author Reid Townson, NRC" \
                          "g=\f$\overline{g}\f$" \
-                         "murho=\f$\mu/\rho\f$" \
-                         "mutr_rho=\f$\mu_\mathrm{tr}/\rho\f$" \
-                         "muen_rho=\f$\mu_\mathrm{en}/\rho\f$" \
+                         "murho=\f$\left(\mu/\rho\right)\f$" \
+                         "mutr_rho=\f$\left(\mu_\mathrm{tr}/\rho\right)\f$" \
+                         "muen_rho=\f$\left(\mu_\mathrm{en}/\rho\right)\f$" \
                          "mutr=\f$\mu_\mathrm{tr}\f$" \
                          "muen=\f$\mu_\mathrm{en}\f$" \
                          "Emuen_rho=\f$E \times \left( \frac{\mu_\mathrm{en}}{\rho} \right)\f$"\
                          "deg=\f$^o\f$" \
-                         "Erad=\f$\overline{E}\mathrm{rad}\f$" \
-                         "Etr=\f$\overline{E}\mathrm{tr}\f$" \
+                         "Erad=\f$\overline{E}_\mathrm{rad}\f$" \
+                         "Etr=\f$\overline{E}_\mathrm{tr}\f$" \
                          "T0=\f$T_0\f$"
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
@@ -1078,6 +1078,7 @@ HTML_STYLESHEET        =
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
 HTML_EXTRA_STYLESHEET  = mydoxygen.css
+#HTML_EXTRA_STYLESHEET  = egsppdoxygen.css
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
 # other source files which should be copied to the HTML output directory. Note
@@ -1361,7 +1362,7 @@ DISABLE_INDEX          = NO
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-GENERATE_TREEVIEW      = NO
+GENERATE_TREEVIEW      = YES
 
 # The ENUM_VALUES_PER_LINE tag can be used to set the number of enum values that
 # doxygen will group on one line in the generated HTML documentation.
