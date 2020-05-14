@@ -35,35 +35,10 @@
 
  /*! \mainpage notitle
 
-<ul>
-<li> \ref g_intro </li>
-<li> \ref g_method </li>
-  <ul>
-  <li> \ref g_photons </li>
-  <li> \ref g_charged </li>
-  </ul>
-<li> \ref g_src_types </li>
-  <ul>
-  <li> \ref g_src_type_0 </li>
-  <li> \ref g_src_type_1 </li>
-  </ul>
-<li> \ref g_calc_types </li>
-  <ul>
-  <li> \ref g_calc_type_0 </li>
-  <li> \ref g_calc_type_1 </li>
-  </ul>
-<li> \ref g_usage </li>
-<li> \ref g_example </li>
-  <ul>
-   <li> \ref g_mono </li>
-   <li> \ref g_spec </li>
-  </ul>
-</ul>
-
 \section g_intro Introduction
 
-The EGSnrc application \b g calculates \g, the average kinetic energy fraction lost 
-to radiative events for photon beams or the radiative yield Y in the 
+The `EGSnrc` application `g` calculates \g, the average kinetic energy fraction lost 
+to radiative events for photon beams (radiative loss fraction) or the radiative yield Y in the 
 case of charged particle  beams. For photons, in addition to \f$\overline{g}\f$, 
 quantities such as kerma, \f$\textrm{K}\f$, collision kerma, \f$\textrm{K}_\mathrm{col}\f$, 
 energy fluence averaged mass energy-transfer coefficient, \f$\overline{\mu}_\mathrm{tr}/\rho\f$ 
@@ -77,7 +52,7 @@ coefficients (version 1.2) and to properly account for fluorescent photons (vers
 The \f$\overline{g}\f$ value used during the 2003 update to the Canadian Co-60 
 air kerma primary standard was obtained using this code.
 
-Motivated by the need to generate large \Emuen_rho databases for EGSnrc applications 
+Motivated by the need to generate \Emuen_rho databases for `EGSnrc` applications 
 requiring the calculation of the quantity kerma, a photon-only calculation (calculation type = 1) 
 was implemented in April 2006 which would finish the calculation as soon as a prescribed uncertainty 
 had been reached. This calculation type took advantage of the faster convergence of \mutr and 1-\g 
@@ -87,74 +62,80 @@ of 70 is obtained for a 600 keV calculation in air. At around the same time, the
 calculation for more than one energy was added, giving the user the possibility to request a 
 linear or a logarithmic energy grid.
 
-In January 2017, the AUSGAB routine was refined to properly classify sub-threshold events as either 
-radiative or non-radiative during atomic relaxations following photoeffect, Compton scattering, and 
-electron impact ionization (version change to 1.4).
-According to this scheme, sub-threshold Auger electrons are added to the kerma calculation 
-(non-radiative) and sub-threshold fluorescent photons are included as part of the energy lost 
-to radiative events.
+In January 2017, version 1.4 of `g` introduced refinements in its `AUSGAB` routine which combined
+with several changes in `EGSnrc` allow proper classification of sub-threshold events as either radiative 
+or non-radiative during atomic relaxations following photoeffect, Compton scattering, and electron impact 
+ionization (EII). According to this scheme, 
+sub-threshold relaxation Auger electrons following photoeffect or Compton scattering are added to 
+the kerma calculation (non-radiative) and sub-threshold relaxation fluorescent photons after EII are 
+included as part of the energy lost to radiative events. 
 
-The current version (1.5) fixes a bug in the calculation of \g for both calculation types when the photon's 
-energy is sampled from an energy spectrum. It also provides a cleaner output and an option for
-more verbose output.
+Current version (1.5) fixes a bug in the calculation of \g for both calculation types when the photon's 
+energy is sampled from an energy spectrum. An exhaustive discussion of these issues can be found in the 
+detailed paper by Rogers and Townson ([Med. Phys. 46 2019](https://doi.org/10.1002/mp.13744)).
+It also provides a cleaner output and an option for more verbose output.
 
 \section g_method Calculation method
 
-\subsection g_charged Radiation yield Y
+\subsection g_charged Radiation yield
 
-Radiation yield Y(\T0) of a charged particle is defined as the fraction of its initial kinetic energy \T0 that is 
-emitted as electromagnetic radiation through the slowing down process of that particle in a medium. For light charged 
+Radiation yield Y(\T0) of a charged particle is defined as the fraction of its initial kinetic energy \T0 emitted 
+as electromagnetic radiation through the slowing down process of that particle in a medium. For light charged 
 particles, bremsstrahlung, fluorescence after impact ionization and in-flight annihilation (in the case of positrons) 
-are the interactions responsible for the emission of electromagnetic radiation. For the calculation of Y, the \c g 
-application scores the energy radiated per charged particle after these interactions, \Erad, and computes Y using the expression
+are the interactions responsible for the emission of electromagnetic radiation. 
+
+For the calculation of Y, the \c g application follows a number of charged particles with energy \T0 starting from the origin (0,0,0) 
+with initial direction along the positive z-axis (0,0,1) as they travel across an infinite geometry filled with a user-defined medium. 
+\Erad, the average energy radiated by these particles as they slow down in the medium is scored to compute Y using the expression
 
 \f[
-     Y = \frac{\overline{E}\mathrm{rad}}{T_0}.
+     Y = \frac{\overline{E}_\mathrm{rad}}{T_0}.
 \f]
 
-In adition to Y, \b g also outputs \f$Y_\mathrm{brems}\f$, the radiative energy fraction due only to bremsstrahlung events to assess 
+In adition to Y, the application also outputs \f$Y_\mathrm{brems}\f$, the radiative yield due to bremsstrahlung events to assess 
 the approximation incurred when ignoring all other interactions as has been customarily done in the past.
 
 \subsection g_photons Radiative fraction, mass energy transfer and mass energy absorption coefficients
 
-These calculations estimate the kinetic photon energy transferred to charged particles, \Etr,
-and the kinetic energy lost by charged particles via radiative events, \Erad. Atomic relaxation 
-events after electron impact ionization (EII), leading to fluoresence are classified as part of the radiative loss.
-Primary photons are killed after interacting in the medium, while radiative photons (bremsstrahlung, annihilation photons, 
-fluorescent photons after EII) are immediately discarded after their energy is scored as part of \Erad. Electrons are followed 
-as they slow down in the medium until their 
-energy falls below the transport cut-off energy ECUT. Especial attention is paid to sub-threshold
-relaxation particles. In the case of sub-threshold non-radiative events after Compton or photoeffect, the energy of the Auger 
-electrons is scored as part of \Etr. Furthermore, sub-threshold fluorescent photons after EII are scored as part of \Erad.
-
-The mass energy transfer coefficient, \mutr_rho for a monoenegetic photon beam of energy E 
-can be calculated using the expression 
+The mass energy transfer coefficient, \mutr_rho for a monoenegetic photon beam of energy E is calculated using the expression 
 
 \f[
      \left(\frac{\mu_\mathrm{tr}}{\rho}\right) = \frac{\overline{E}_\mathrm{tr}}{E} \cdot \left(\frac{\mu}{\rho}\right),
 \f]
 
-which follows from the definition of \f$ \mu_\mathrm{tr}/\rho\f$ and where \murho is the mass attenuation coefficient for a photon of energy E. To estimate \Etr, all kinetic energy transferred
-to charged particles after any photon interaction (photoelectric, Compton, and pair production) is scored. After atomic relaxations only energy transferred to charged particles (Auger or Coster-Kronig)
-is scored as part of \Etr, while energy transferred to fluorescent photons is scored as part of
-\Erad.
+which follows from the [definition](https://physics.nist.gov/PhysRefData/XrayMassCoef/chap3.html) of \mutr_rho, 
+and where \Etr is the average photon energy transferred to charged particles after photon interactions (photoelectric, 
+Compton, and pair production), and \murho is the mass attenuation coefficient for a photon of energy E. 
 
-Similarly, the mass energy absorption coefficient for photons of energy E is calculated using the expression
+To obtain the mass energy absorption coefficient \muen_rho for monoenergetic photons, first the radiative fraction \g must be calculated.
+This calculation requires scoring besides \Etr the average energy lost to radiative events as the electrons slow down in a medium, \Erad.
+The estimation of \Erad follows the approach used above for radiation yield with the difference that in this case the averaging is over 
+all secondary charged particles. The average radiative fraction \g  is obtained as the ratio
+
+\f[
+     \overline{g} = \frac{\overline{E}_\mathrm{rad}}{\overline{E}_\mathrm{tr}}.
+\f]
+
+The mass energy absorption coefficient for photons of energy E, \muen_rho, is defined as the non-radiative part of \mutr_rho and is 
+calculated using the expression
 
 \f[
      \left(\frac{\mu_\mathrm{en}}{\rho}\right) = 
      \left(1-\overline{g}\right) \cdot \left(\frac{\mu_\mathrm{tr}}{\rho}\right).
 \f]
 
-The calculation of \g requires the scoring of the average kinetic energy transferred to charged 
-particles by photons, \f$\overline{E}_\mathrm{tr}\f$, and the average energy lost to radiative events, 
-\f$\overline{E}_\mathrm{rad}\f$, as the electrons slow down in an infinite homogeneous 
-geometry filled with the medium of interest.  
-
-The average radiative fraction \g for monoenergetic photons is obtained as the ratio
+Once the coefficients are known, kerma per unit fluence \f$\phi\f$ is obtained as
 
 \f[
-     \overline{g} = \frac{\overline{E}_\mathrm{rad}}{\overline{E}_\mathrm{tr}}.
+     \frac{K}{\phi} = E \cdot \left(\mu_\mathrm{tr}/\rho\right) 
+                    = \overline{E}_\mathrm{tr} \cdot \left(\mu/\rho\right) 
+\f]
+
+and similarly, collision kerma per fluence as
+
+\f[
+     \frac{K_\mathrm{col}}{\phi} = E \cdot \left(\mu_\mathrm{en}/\rho\right) 
+                                 = \overline{E}_\mathrm{en} \cdot \left(\mu/\rho\right) 
 \f]
 
 In the case of a polyenergetic source of photons, 
@@ -165,6 +146,24 @@ relationship between kerma and energy fluence averaged mass energy-transfer coef
      \frac{K}{\psi} = \left(\overline{\mu}_\mathrm{tr}/\rho\right)_{\psi} 
                     = \int \psi(E) \mu_\mathrm{tr}(E)/\rho dE/\int \psi(E) dE
 \f]
+
+To compute these quantities for monoenergetic photon beams `g` forces the initial photons to interact at the origin (0,0,0)
+of an infinite geometry filled with a user-defined medium. The photon energy transferred to charged particles after these 
+interactions is scored to estimate \Etr. After atomic relaxations only energy transferred to charged particles (Auger or Coster-Kronig) 
+is scored as part of \Etr.
+Atomic relaxation events after electron impact ionization (EII), leading to fluoresence are classified as part of the radiative loss.
+Primary photons are killed after interacting in the medium, while radiative photons (bremsstrahlung, annihilation photons, 
+fluorescent photons after EII) are immediately discarded after their energy is scored as part of \Erad. Electrons are followed 
+as they slow down in the medium until their energy falls below the transport cut-off energy ECUT. Especial attention is paid to sub-threshold
+relaxation particles. In the case of sub-threshold non-radiative events after Compton or photoeffect, the energy of the Auger 
+electrons is scored as part of \Etr. Furthermore, sub-threshold fluorescent photons after EII are scored as part of \Erad.
+
+\note Although this app uses the variable g to refer indistinctively to both the radiative yield for charged particles, Y, 
+and the radiative fraction for photons, g, these quantities are conceptually different. Radiative yield is defined as the 
+fraction of a charged particle's kinetic energy lost to radiation as it slows down in a medium, while radiative fraction is defined 
+as the average fraction of a photon's kinetic energy transferred to charged particles and subsequently lost to radiation as these charged 
+particles slow down in the medium. The radiative fraction \g can be obtained from the integration of Y(E) over the secondary electron spectrum.
+
 
 \section g_src_types Source options
 
@@ -227,7 +226,7 @@ transferred to charged particles was scored
 \subsection g_calc_type_1 Photon beams only (type 1)
 
 \section g_usage Usage
-The EGSnrc application \c g can be started from the command line
+The `EGSnrc` application \c g can be started from the command line
 using
 \code
 g -i input_file [-p pegs_file] [-o output_file] [-b]
@@ -241,7 +240,7 @@ With the <b>\c -o</b> option one can change the name of the output files
 is used, where <b>\c xxx</b> is <b>\c .egslog</b> for the log file, <b>\c .egsdat</b> for the
 data file, etc.). With <b>\c -b</b> one specifies a "batch" run, \em i.e. the
 output is redirected to <b>\c output_file.egslog</b>. 
-Remember that any application can be executed from the EGSnrc GUI \c egs_gui.
+Remember that any application can be executed from the `EGSnrc` GUI \c egs_gui.
 
 \section g_example Input examples
 
