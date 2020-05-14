@@ -1,8 +1,19 @@
+
+/* body, table, div, p, dl {
+	font: 400 14px/22px Roboto,sans-serif;
+}
+ */
+/*
+h1, h2, h3 {
+    width: 90%;
+    margin: auto;
+}
+*/
 /* Paragraphs */
 p {
     font-size: 1.15rem;
-    width: 100%;
 }
+
 /* Code style */
 div.line {
     font-size: 1.15rem;
@@ -19,11 +30,15 @@ body{
 p.formulaInl {
     font-size: 1.15rem;
 }*/
-/* Parameters */
-.params{
+/* Parameters *#sideanav{
     font-size: 1.15em;
 }
-/* Link Styling */
+/* 20x Styling */
 a.el {
 	font-size: 1.15rem;
+}
+/* Access to navigation tree */
+#nav-tree .label {
+    font: 1.15em 'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
+    /*font: 14px 'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;*/
 }
