@@ -586,6 +586,13 @@ public:
               egsInformation("  %s\n",line.c_str());
            }
            kerma->currentResult(j,r,dr);
+           if (r > 0) {
+               dr = dr/r;
+               if (dr < kermaEpsilon) dr = 1.0;
+           }
+           else {
+               dr=1.0;
+           }
            egsInformation("  Total: %8.4f %12.6e +/- %-8.4f%% %12.6e +/- %-8.4f%%\n",
                           mass_cv[j],r*normE,dr*100.,r*normD/mass_cv[j],dr*100.);
            egsInformation("  %s\n",line.c_str());
@@ -598,8 +605,6 @@ public:
         /******************************************************************************/
         if( ncg > 0 ) {
             egsInformation("%-20s %-20s    KERMA ratio\n","Geometry 1", "Geometry 2");
-
-            vector<double> ratio, dratio;
 
             for(int j=0; j<ncg; j++) {
                 double r1,dr1,r2,dr2;
@@ -615,8 +620,6 @@ public:
                     egsInformation("%-20s %-20s     %-11.8lg +/- %-10.8lg [%-10.6lf%%]\n",
                                    geoms[gind1[j]]->getName().c_str(),
                                    geoms[gind2[j]]->getName().c_str(),r,r*dr,100.*dr);
-                    ratio.push_back(r);
-                    dratio.push_back(r*dr);
                 }
                 else egsInformation("zero dose\n");
             }
