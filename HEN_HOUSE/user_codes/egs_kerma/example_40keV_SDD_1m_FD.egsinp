@@ -239,5 +239,5 @@
 ### Run control
 ###############################################################################
 :start run control:
-    ncase = 4e9
+    ncase = 4e6
 :stop run control:
