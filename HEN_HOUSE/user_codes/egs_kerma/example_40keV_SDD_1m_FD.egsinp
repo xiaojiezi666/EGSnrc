@@ -34,11 +34,11 @@
 #  forced-detection (FD) technique and a track-length estimator. The air sphere
 #  is in the centre of the room and the source is 1 m from the sphere.
 #
-#  NOTE 1: Material data is generated in pegsless mode. If source energy
+#  NOTE 1: Material data is generated on-the-fly (pegsless). If source energy
 #          changed, make sure to adjust energy cut-offs (ae, ue, ap, up) below.
 #
-#  NOTE 2: Two geometries are used here for illustration purposes. Most likely
-#          only one geometry is needed for kerma and fluence calculations.
+#  NOTE 2: Although one geometry would be enough, two geometries are used for 
+#          illustration purposes (see comments below for more details).
 #
 ###############################################################################
 
@@ -48,9 +48,9 @@
 ###############################################################################
 :start geometry definition:
 
-    ### air cavity, spherical, 5 cm radius
+    ### air sphere, spherical, 5 cm radius
     :start geometry:
-        name     = cavity
+        name     = sphere
         library  = egs_spheres
         midpoint = 0 0 0
         radii    = 5.0
@@ -104,29 +104,29 @@
 
     ### air sphere in room with concrete walls (wall contribution NOT included)
     :start geometry:
-        name    = cavity_in_room_no_wall
+        name    = sphere_in_room_no_wall
         library = egs_genvelope
         base geometry = room
-        inscribed geometries = cavity
+        inscribed geometries = sphere
     :stop geometry:
 
     ### air sphere in room with concrete walls (wall contribution included)
     :start geometry:
-        name    = cavity_in_room_all
+        name    = sphere_in_room_all
         library = egs_genvelope
         base geometry = room
-        inscribed geometries = cavity
+        inscribed geometries = sphere
     :stop geometry:
 
     ### simulation geometry
-    simulation geometry = cavity_in_room_no_wall
+    simulation geometry = sphere_in_room_no_wall
 
 :stop geometry definition:
 
 
-###############################################################################
-### Media
-###############################################################################
+############################################
+### Media definition (pegsless mode)
+############################################
 :start media definition:
 
     ### energy cutoffs
@@ -148,9 +148,9 @@
 :stop media definition:
 
 
-###############################################################################
-### Source
-###############################################################################
+#########################################
+### 40 keV isotropic point source
+#########################################
 :start source definition:
 
     ### isotropic
@@ -186,35 +186,39 @@
 
     ### use the same geometry under two different names, for easier bookeeping
     :start calculation geometry:
-        geometry name    = cavity_in_room_no_wall
-        cavity regions   = 2
-        excluded regions = 0  # exclude particles passing through these regions
-        cavity mass      = 0.630831804841  # 5 cm radius air sphere
+        geometry name         = sphere_in_room_no_wall
+        scoring regions       = 2
+        excluded regions      = 0     # exclude contribution from these regions
+        scoring region masses = 0.631 # mass in g for each region
+        #scoring volume mass  = 0.631 # alternatively: mass for whole scoring volume
     :stop calculation geometry:
 
     :start calculation geometry:
-        geometry name     = cavity_in_room_all
-        cavity regions    = 2
-        #excluded regions = 0  # exclude particles passing through these regions
-        cavity mass       = 0.630831804841  # 5 cm radius air sphere
+        geometry name         = sphere_in_room_all
+        scoring regions       = 2
+        scoring region masses = 0.631 # mass in g for each region
+        #scoring volume mass  = 0.631 # mass in g for whole scoring volume
     :stop calculation geometry:
 
     ### ratio estimates wall contribution to air sphere
-    correlated geometries = cavity_in_room_all  cavity_in_room_no_wall
+    correlated geometries = sphere_in_room_all  sphere_in_room_no_wall
 
     ### fluence scoring requested (common to all calculation geometries)
     :start fluence scoring:
-        minimum energy = 0.0
+        minimum energy = 0.001
         maximum energy = 0.040
-        number of bins = 400
+        number of bins = 40
         scale          = linear
     :stop fluence scoring:
 
     ### E*muen file (could also be E*mutr): absolute or relative file path
-    emuen file = emuen_icru90_1.5MeV.data
+    #emuen file = emuen_icru90_1.5MeV.data
+    ### Use absolute path when submitting parallel jobs!!!
+    ### $EGS_HOME replaced with its value now
+    emuen file = $EGS_HOME/egs_kerma/emuen_icru90_1.5MeV.data
 
-    ### geometry for forced-detection (if omitted, an analog scoring is used)
-    cavity geometry = cavity
+    ### geometry for forced-detection (if omitted, score ONLY when reaching scoring region)
+    Default FD geometry = sphere
 
 :stop scoring options:
 
@@ -226,15 +230,14 @@
 
     ### you can include here any of the EGSnrc transport parameters
 
-    Global ECUT = 2000.                 # Turn-off electron transport
-    Photon cross sections = mcdf-xcom   # XCOM with renormalized PE xsections
+    Global ECUT = 2.511            # Turn-off electron transport
+    Photon cross sections = xcom   # XCOM photon xsections
 
 :stop MC transport parameter:
-
 
 ###############################################################################
 ### Run control
 ###############################################################################
 :start run control:
-    ncase = 1000000
+    ncase = 4e9
 :stop run control:
