@@ -1012,11 +1012,21 @@ int EGS_KermaApplication::initScoring() {
                     "\n\n***  Wrong/missing 'emuen file' input for a "
                     "Kerma calculation\n    This is a fatal error\n\n");
         }
+
+        muen_file = egsExpandPath(muen_file);
+
         ifstream muen_data(muen_file.c_str());
         if (!muen_data) {
             egsFatal(
                 "\n\n***  Failed to open emuen file %s\n"
                 "     This is a fatal error\n",muen_file.c_str());
+        }
+        else{
+            egsInformation(
+                "\n\n=============== Kerma Scoring ===============\n"
+                    "E*muen/rho file: %s\n"
+                    "=============================================\n\n",
+                    muen_file.c_str());
         }
         int ndat;
         muen_data >> ndat;

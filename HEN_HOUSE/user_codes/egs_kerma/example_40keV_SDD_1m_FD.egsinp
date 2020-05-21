@@ -211,7 +211,8 @@
     :stop fluence scoring:
 
     ### E*muen file (could also be E*mutr): absolute or relative file path
-    emuen file = emuen_icru90_1.5MeV.data
+    ### Use absolute path when submitting parallel jobs!!!
+    emuen file = $EGS_HOME/egs_kerma/emuen_icru90_1.5MeV.data
 
     ### geometry for forced-detection (if omitted, an analog scoring is used)
     cavity geometry = cavity
