@@ -231,16 +231,28 @@ string egsExpandPath(const string &aname) {
     // Did we find an environment variable?
     if ( p1 != str.npos && p2 != str.npos ){
        string envvar = str.substr( p1+1, p2-(p1+1) );
-       string  envloc = string( getenv( envvar.c_str() ) );
-       // Append missing separator
-       size_t last = envloc.find_last_of("/\\");
-       if (last != envloc.size()-1 ){
-          if (envloc[last] == __egs_fs)
-             envloc.append("\\");
-          else
-             envloc.append("/");
+       char*  envval = getenv( envvar.c_str() );
+       // Check env var is defined
+       string envloc = envval ? string( envval ) : string();
+       if ( !envloc.empty() ) {
+          // Append missing separator
+          size_t last = envloc.find_last_of("/\\");
+          if (last != envloc.size()-1 ){
+            if (envloc[last] == __egs_fs)
+               envloc.append("\\");
+            else
+               envloc.append("/");
+          }
+          str.replace( p1, p2-p1+1,envloc);
        }
-       str.replace( p1, p2-p1+1,envloc);
+       else{
+          if ( str[p1] == '$')
+             egsWarning("\n\n *** egs++ egsExpandPath: Undefined environment variable $%s \n\n",
+                     envvar.c_str());
+          else
+             egsWarning("\n\n *** egs++ egsExpandPath: Undefined environment variable %%%s%% \n\n",
+                     envvar.c_str());
+       }
     }
     // Replace back slashes with slashes    
     size_t found = str.find("\\");
