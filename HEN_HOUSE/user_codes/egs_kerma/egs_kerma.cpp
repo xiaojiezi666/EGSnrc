@@ -39,7 +39,7 @@
 #    that haven't been in any of the exclusion regions. Photons interacting inside
 #    the scoring regions are included.
 #
-#  - If no geometry provided, an analog TL scoring 'a la FLURZnrc' is used
+#  - If no geometry provided, a classic TL scoring 'a la FLURZnrc' is used
 #    for kerma and fluence.
 #
 #  Required: E*muen or E*mutr file for scoring either collision or total kerma
@@ -217,7 +217,7 @@ public:
             /* photon outside cavity and has not been in any exclusion zone */
             else if (latch >= 0)
                 latch = 0;
-    
+
             the_stack->latch[np] = latch;
         }
         return 0;
@@ -230,7 +230,7 @@ public:
         last_case = current_case;
         EGS_Vector x,u;
         current_case = source->getNextParticle(rndm,p.q,p.latch,p.E,p.wt,x,u);
-        Eave += p.q ? p.E - the_useful->rm: p.E;
+        Eave += p.E;
 
         int err = startNewShower();
         if( err ) return err;
@@ -272,9 +272,9 @@ public:
         volume (CV). Once inside CV, determine its path across the CV and
         once it exits the CV, proceed to score kerma and fluence.
 
-        If the CV is such that multiple entries are possible, e.g., photons 
-        entering or backscattering into hollow geometries, for instance a 
-        spherical or cylindrical shell, this method is called recursively 
+        If the CV is such that multiple entries are possible, e.g., photons
+        entering or backscattering into hollow geometries, for instance a
+        spherical or cylindrical shell, this method is called recursively
         to continue ray-tracing.
 
         Photons touching excluded region are immediately discarded.
@@ -346,7 +346,7 @@ public:
             {
                 // Does it re-enter CV?
                 tstep = TSTEP_MAX;
-                if ( fd_geom->isInside(x) || 
+                if ( fd_geom->isInside(x) ||
                      fd_geom->howfar(-1,x,u,tstep,&newmed)>= 0 ){
                    re_enters_cv = true;
                 }
