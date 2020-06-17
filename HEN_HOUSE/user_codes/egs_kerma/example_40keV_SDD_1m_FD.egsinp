@@ -29,10 +29,16 @@
 #
 #  A simple example input file for the egs_kerma C++ application.
 #
-#  Simulates a 40 keV isotropic photon source in a room with concrete walls.
-#  Kerma and fluence inside a 5 cm radius air sphere are calculated using a
-#  forced-detection (FD) technique and a track-length estimator. The air sphere
-#  is in the centre of the room and the source is 1 m from the sphere.
+#  Simulates a 40 keV isotropic photon source in a room with concrete walls
+#  irradiating an air sphere placed in the centre of the room at 1 m from the 
+#  source. Kerma and fluence inside the 5 cm radius air sphere are calculated 
+#  using a forced-detection (FD) technique (exponential track-length estimator).
+#  This should be about 80% more efficient than a linear track-length estimation.
+#  The latter can be invoked by commenting out the input key "Default FD geometry"
+#
+#  The effect of scatter off the concrete walls on the air sphere is estimated by 
+#  computing the ratio of the total kerma to the kerma from a calculation excluding 
+#  particles touching exclusion regions (the wall in this case).
 #
 #  NOTE 1: Material data is generated on-the-fly (pegsless). If source energy
 #          changed, make sure to adjust energy cut-offs (ae, ue, ap, up) below.
@@ -189,7 +195,7 @@
         geometry name         = sphere_in_room_no_wall
         scoring regions       = 2
         excluded regions      = 0     # exclude contribution from these regions
-        scoring region masses = 0.631 # mass in g for each region
+        scoring region masses = 0.631 # mass in g for each scoring region
         #scoring volume mass  = 0.631 # alternatively: mass for whole scoring volume
     :stop calculation geometry:
 
@@ -230,9 +236,9 @@
 
     ### you can include here any of the EGSnrc transport parameters
 
-    Global ECUT = 2.511            # Turn-off electron transport
-    Photon cross sections = xcom   # XCOM photon xsections
-
+    Global ECUT = 2.511               # Turn-off electron transport
+    Photon cross sections = mcdf-xcom # MCDF-XCOM photon xsections since
+                                      # used for E*muen values above
 :stop MC transport parameter:
 
 ###############################################################################
