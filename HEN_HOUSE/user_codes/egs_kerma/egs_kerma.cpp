@@ -272,15 +272,14 @@ public:
 
         If the CV is such that multiple entries are possible, e.g., photons
         entering or backscattering into hollow geometries, for instance a
-        spherical or cylindrical shell, this method is called recursively
-        to continue ray-tracing.
+        spherical or cylindrical shell, this method continues the
+        ray-tracing to the next re-entry.
 
         Photons touching excluded region are immediately discarded.
 
         TODO: Use region labels to define sensitive regions
 
      */
-    //int scoreInCV(int ir, EGS_Vector xi, EGS_Float wt_atti, EGS_Vector ui, int npi, EGS_Float glei) {
     int scoreInCV() {
 
         int np = the_stack->np-1;
@@ -762,12 +761,12 @@ public:
         //******************************************************************
         //if ( fd_geom && !the_stack->latch[np] && // TAKES ONLY PRIMARIES!!!!
         if ( fd_geom && the_stack->latch[np] >= 0 && // TAKES ALL PHOTONS !!!
-            (is_sensitive[ig][ireg] || fd_geom->howfar(-1,x,u,tstep,&newmed)>= 0 || fd_geom->isInside(x)) )
+            (is_sensitive[ig][ireg] ||
+             fd_geom->howfar(-1,x,u,tstep,&newmed)>= 0 ||
+             fd_geom->isInside(x)) )
         {
             /* Photon at or aimed at cavity */
             int errK = scoreInCV();
-            //EGS_Float wt_att = 1.0;
-            //int errK = scoreInCV(ireg, x, wt_att, u, np, the_epcont->gle);
         }
         dpmfp = -log(1 - rndm->getUniform());
         return;
