@@ -49,7 +49,12 @@
 <li> \ref common_mc </li>
 <li> \ref egs_kerma_usage </li>
 <li> \ref TODO </li>
-<li> \ref egs_kerma_example </li>
+<li> \ref egs_kerma_examples </li>
+<ul>
+ <li> \ref egs_kerma_example_5keV </li>
+ <li> \ref egs_kerma_example_20MeV </li>
+ <li> \ref egs_kerma_example_40keV </li>
+</ul>
 </ul>
 
 \section egs_kerma_intro Introduction
@@ -168,10 +173,10 @@ A pseudo input block of such an input is shown below:
     :stop fluence scoring:
 
     ### E*muen file (could also be E*mutr): absolute or relative file path
-    #emuen file = emuen_icru90_1.5MeV.data
+    #emuen file = emuen_rho_air_1keV-1.5MeV.data
     ### Use absolute path when submitting parallel jobs!!!
     ### $EGS_HOME replaced with its value now
-    emuen file = $EGS_HOME/egs_kerma/emuen_icru90_1.5MeV.data
+    emuen file = $EGS_HOME/egs_kerma/emuen_rho_air_1keV-1.5MeV.data
 
     ### geometry for forced-detection (if omitted, score ONLY when reaching scoring region)
     #   Used for calculation geometries for which no individual FD geometry defined.
@@ -203,7 +208,7 @@ K_\mathrm{m}=\sum_{i=1}^{N} w_i \cdot \frac{l_i}{V_\mathrm{m}} \cdot E_i \cdot
 with \f$l_i\f$ the path crossed by the \f$ i^\mathrm{th}\f$ photon of statistical weight \f$l_i\f$ 
 through the scoring region.
 
-The example file <em>emuen_icru90_1.5MeV.data</em> contains \f$ E \times \frac{\mu_{en}}{\rho} \f$
+The example file <em>emuen_rho_air_1keV-1.5MeV.data</em> contains \f$ E \times \frac{\mu_{en}}{\rho} \f$
 values for air on a logarithmic energy scale from 1 keV up to 1.5 MeV. These values
 were calculated with the <em>g</em> application using the following (non-default)
 transport parameters:
@@ -375,44 +380,350 @@ for all materials in the scoring volume. Alternatively, one could compute mass-e
 \em on-the-fly (total kerma). </li>
 </ul>
 
-\section egs_kerma_example An input example: Kerma in 5 cm air sphere for 40 keV
-photons
+\section egs_kerma_examples Input examples
 
+\subsection egs_kerma_example_5keV Depth dose in 15 cm water sphere for 5 keV photons
 \verbatim
-###############################################################################
-#
-#  EGSnrc egs++ egs_kerma application sample input file
-#  Copyright (C) 2016 National Research Council Canada
-#
-#  This file is part of EGSnrc.
-#
-#  EGSnrc is free software: you can redistribute it and/or modify it under
-#  the terms of the GNU Affero General Public License as published by the
-#  Free Software Foundation, either version 3 of the License, or (at your
-#  option) any later version.
-#
-#  EGSnrc is distributed in the hope that it will be useful, but WITHOUT ANY
-#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-#  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
-#  more details.
-#
-#  You should have received a copy of the GNU Affero General Public License
-#  along with EGSnrc. If not, see <http://www.gnu.org/licenses/>.
-#
-###############################################################################
-#
-#  Author:        Ernesto Mainegra-Hing, 2016
-#
-#  Contributors:
-#
 ###############################################################################
 #
 #  A simple example input file for the egs_kerma C++ application.
 #
-#  Simulates a 40 keV isotropic photon source in a room with concrete walls.
-#  Kerma and fluence inside a 5 cm radius air sphere are calculated using a
-#  forced-detection (FD) technique and a track-length estimator. The air sphere
-#  is in the centre of the room and the source is 1 m from the sphere.
+#  Simulates a point source at the origin of a 15 cm radius water sphere emitting
+#  5 keV photons isotropically. Depth dose in 1 mm thick spherical shells is 
+#  calculated using a forced-detection (FD) technique (exponential track-length). 
+#
+#  This technique allows estimating kerma 20 times more efficiently than linear 
+#  track-length (TL) estimation within the inner most sphere. The efficiency gain 
+#  increases exponentially at larger depths in the phantom. This can be tested
+#  by commenting out the FD geometry input below to turn off FD.
+#
+#  The dramatic FD efficiency gains at 5 keV are not observed at 25 keV. As a matter
+#  of fact TL estimation is more efficient than FD below 1 cm increasing past
+#  that depth to only a 20% efficiency gain at 2 cm. This is related with the 
+#  fact that in a spherical concentric geometry, photons are always directed to
+#  the FD geometry and ray-tracing is done all the time.
+#
+#  NOTE : Material data is generated on-the-fly (pegsless). If source energy
+#         changed, make sure to adjust energy cut-offs (ae, ue, ap, up) below.
+#
+###############################################################################
+
+###############################################################################
+### Geometry
+###############################################################################
+:start geometry definition:
+
+    ### water sphere, 15 cm radius
+     :start geometry:
+        name     = the_phantom
+        library  = egs_spheres
+        midpoint = 0 0 0
+        radii    = 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 15
+        :start media input:
+            media = water
+        :stop media input:
+     :stop geometry:
+
+     :start geometry:
+        name     = fd_g
+        library  = egs_spheres
+        midpoint = 0 0 0
+        radii    = 2.0 
+        :start media input:
+            media = water
+        :stop media input:
+     :stop geometry:
+
+    ### simulation geometry
+    simulation geometry = the_phantom
+
+:stop geometry definition:
+
+
+###############################################################################
+### Media
+###############################################################################
+:start media definition:
+
+    ### energy cutoffs
+    ae = 0.512
+    ue = 0.542
+    ap = 0.001
+    up = 0.030
+
+    ### concrete
+    :start water:
+        density correction file = water_icru90
+    :stop water:
+
+:stop media definition:
+
+:start rng definition:
+    type = ranmar
+    initial seeds = 7 12
+    high resolution = yes
+:stop rng definition:
+
+###############################################################################
+### Source
+###############################################################################
+:start source definition:
+
+    ### isotropic
+    :start source:
+        name    = isotropic
+        library = egs_isotropic_source
+        charge  = 0
+
+        ### source shape
+        :start shape:
+            type = point
+            position = 0, 0, 0
+        :stop shape:
+
+        ### source spectrum
+        :start spectrum:
+            type = monoenergetic
+            energy = 0.005  # MeV
+        :stop spectrum:
+
+   :stop source:
+
+   ### simulation source
+   simulation source = isotropic
+
+:stop source definition:
+
+
+###############################################################################
+### Scoring options
+###############################################################################
+:start scoring options:
+
+    ### use the same geometry under two different names, for easier bookeeping
+     :start calculation geometry:
+        geometry name          = the_phantom
+        scoring regions        = 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
+        scoring region masses  = 0.0041804126 0.029263 0.079428 0.154675 0.255005 0.380418 0.530912 \
+                                 0.70649 0.90715 1.132892 1.383717 1.659624 1.960614 2.286686 \
+                                 2.63784 3.014078 3.415397 3.841799 4.293284 4.769851 
+        FD geometry            = fd_g 
+     :stop calculation geometry:
+
+
+    ### E*muen file (could also be E*mutr): absolute or relative file path
+    emuen file = $EGS_HOME/egs_kerma/emuen_rho_water_1keV-1.5MeV.data
+
+:stop scoring options:
+
+
+###############################################################################
+### Transport parameters
+###############################################################################
+:start MC transport parameter:
+
+    ### you can include here any of the EGSnrc transport parameters
+
+    Global ECUT = 2000.                 # Turn-off electron transport
+    Photon cross sections = mcdf-xcom   # XCOM with renormalized PE xsections
+
+:stop MC transport parameter:
+
+
+###############################################################################
+### Run control
+###############################################################################
+:start run control:
+    ncase = 4e+6
+:stop run control:
+\endverbatim
+
+\subsection egs_kerma_example_20MeV Fluence outside Pb shield for 20 MeV electrons
+\verbatim
+###############################################################################
+#
+#  A simple example input file for the egs_kerma C++ application.
+#
+#  Simulates a 20 MeV isotropic electron source inside a very thick lead sphere.
+#  Kerma and photon fluence outside the lead sphere are calculated using a
+#  forced-detection (FD) technique (exponential track-length estimator). This
+#  technique is more efficient than linear track-length (TL) estimation. 
+#  Efficiency is further increased by using a 10 keV e- transport cut-off 
+# (ECUT=0.521 MeV), and a simpler e- transport algorithm.
+#
+#  Due to the thick lead shielding this simulation will require significant CPU
+#  time to provide statistically meaninful results. The current number of histories
+#  takes about 1 min on a single core of an Intel i7-2640M CPU @ 2.8 GHz and about
+#  40 s on all four cores. To submit to all available cores on a single computer
+#  use the egs-parallel script (available on request).
+#
+#  Provides a solution to problem 2.3.4 from the EGSnrc course.
+#
+#  NOTE : Material data is generated on-the-fly (pegsless). If source energy
+#         changed, make sure to adjust energy cut-offs (ae, ue, ap, up) below.
+#
+###############################################################################
+
+
+###############################################################################
+### Geometry
+###############################################################################
+:start geometry definition:
+
+    ### lead sphere, 18 cm radius (~ 22 RCSDA for 20 MeV e-)
+    :start geometry:
+        name     = shield
+        library  = egs_spheres
+        midpoint = 0 0 0
+        radii    = 18.0 18.1
+        :start media input:
+            media = lead, air
+            set medium = 1 1
+        :stop media input:
+    :stop geometry:
+
+
+    ### simulation geometry
+    simulation geometry = shield
+
+:stop geometry definition:
+
+
+############################################
+### Media definition (pegsless mode)
+############################################
+:start media definition:
+
+    ### energy cutoffs
+    ae =  0.521
+    ue = 20.512
+    ap =  0.001
+    up = 20.000
+
+    ### air
+    :start air:
+        density correction file = air_dry_nearsealevel
+    :stop air:
+
+    ### concrete
+    :start lead:
+        density correction file = lead
+    :stop lead:
+
+:stop media definition:
+
+
+#########################################
+### 20 MeV isotropic point source
+#########################################
+:start source definition:
+
+    ### isotropic
+    :start source:
+        name    = isotropic
+        library = egs_isotropic_source
+        charge  = -1
+
+        ### source shape
+        :start shape:
+            type = point
+            position = 0, 0, 0
+        :stop shape:
+
+        ### source spectrum
+        :start spectrum:
+            type = monoenergetic
+            energy = 20.0  # MeV
+        :stop spectrum:
+
+   :stop source:
+
+   ### simulation source
+   simulation source = isotropic
+
+:stop source definition:
+
+
+###############################################################################
+### Scoring options
+###############################################################################
+:start scoring options:
+
+    ### Scoring geometry 
+    :start calculation geometry:
+        geometry name         = shield
+        scoring regions       = 1       # outer air shell
+        scoring region masses = 0.49326 # mass in g for each region
+    :stop calculation geometry:
+
+    ### fluence scoring requested (common to all calculation geometries)
+    :start fluence scoring:
+        minimum energy = 0.00
+        maximum energy = 20.0
+        number of bins = 200
+        scale          = linear
+    :stop fluence scoring:
+
+    ### E*muen file (could also be E*mutr): absolute or relative file path
+    emuen file = $EGS_HOME/egs_kerma/emuen_rho_air_1keV-20MeV.data
+
+    ### geometry for forced-detection (if omitted, score ONLY when reaching scoring region)
+    Default FD geometry = shield
+
+:stop scoring options:
+
+
+###############################################################################
+### Transport parameters 
+###############################################################################
+:start MC transport parameter:
+
+    ### you can include here any of the EGSnrc transport parameters
+
+    ####################
+    # Photon parameters
+    ####################
+    Global PCUT = 0.001 # Full transport
+    Photon cross sections = mcdf-xcom # Used for E*muen/rho calculations with g app
+    ######################
+    # Electron parameters
+    ######################
+    # Using a less accurate e- transport and boundary crossing algorithm (PRESTA-I)
+    # to speed things up (2X). Since transport occurs in a homogeneous lead phantom
+    # the details of the e- transport algorithm are not as important, hence this 
+    # approximation produces the same results as a more accurate approach (PRESTA-II).
+    ################
+    Global ECUT                 = 0.521    # negligible approximation
+    Boundary crossing algorithm = PRESTA-I # Speed up calculation
+    Electron-step algorithm     = PRESTA-I # Speed up calculation
+
+:stop MC transport parameter:
+
+###############################################################################
+### Run control
+###############################################################################
+:start run control:
+    ncase = 1e4
+:stop run control:
+\endverbatim
+
+\subsection egs_kerma_example_40keV Kerma in 5 cm air sphere for 40 keV photons
+
+\verbatim
+###############################################################################
+#
+#  A simple example input file for the egs_kerma C++ application.
+#
+#  Simulates a 40 keV isotropic photon source in a room with concrete walls
+#  irradiating an air sphere placed in the centre of the room at 1 m from the 
+#  source. Kerma and fluence inside the 5 cm radius air sphere are calculated 
+#  using a forced-detection (FD) technique (exponential track-length estimator).
+#  This should be about 80% more efficient than a linear track-length estimation.
+#  The latter can be invoked by commenting out the input key "Default FD geometry"
+#
+#  The effect of scatter off the concrete walls on the air sphere is estimated by 
+#  computing the ratio of the total kerma to the kerma from a calculation excluding 
+#  particles touching exclusion regions (the wall in this case).
 #
 #  NOTE 1: Material data is generated on-the-fly (pegsless). If source energy
 #          changed, make sure to adjust energy cut-offs (ae, ue, ap, up) below.
@@ -421,7 +732,6 @@ photons
 #          illustration purposes (see comments below for more details).
 #
 ###############################################################################
-
 
 ###############################################################################
 ### Geometry
@@ -503,7 +813,6 @@ photons
 
 :stop geometry definition:
 
-
 ############################################
 ### Media definition (pegsless mode)
 ############################################
@@ -526,7 +835,6 @@ photons
     :stop concrete:
 
 :stop media definition:
-
 
 #########################################
 ### 40 keV isotropic point source
@@ -557,7 +865,6 @@ photons
    simulation source = isotropic
 
 :stop source definition:
-
 
 ###############################################################################
 ### Scoring options
@@ -595,13 +902,12 @@ photons
     #emuen file = emuen_icru90_1.5MeV.data
     ### Use absolute path when submitting parallel jobs!!!
     ### $EGS_HOME replaced with its value now
-    emuen file = $EGS_HOME/egs_kerma/emuen_icru90_1.5MeV.data
+    emuen file = $EGS_HOME/egs_kerma/emuen_rho_air_1keV-1.5MeV.data
 
     ### geometry for forced-detection (if omitted, score ONLY when reaching scoring region)
     Default FD geometry = sphere
 
 :stop scoring options:
-
 
 ###############################################################################
 ### Transport parameters
@@ -611,8 +917,8 @@ photons
     ### you can include here any of the EGSnrc transport parameters
 
     Global ECUT = 2.511               # Turn-off electron transport
-    Photon cross sections = mcdf-xcom # MCDF-XCOM photon xsections
-
+    Photon cross sections = mcdf-xcom # MCDF-XCOM photon xsections since
+                                      # used for E*muen values above
 :stop MC transport parameter:
 
 ###############################################################################
@@ -621,6 +927,6 @@ photons
 :start run control:
     ncase = 4e6
 :stop run control:
-
 \endverbatim
+
 */
