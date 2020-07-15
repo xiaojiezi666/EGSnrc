@@ -240,6 +240,7 @@ ALIASES                = "internwarning=\par Warning:\n This class is not part o
                          "Eab=\f$\overline{E}_\mathrm{ab}\f$" \
                          "phi=\f$\phi\f$" \
 						 "K=\f$K\f$" \
+						 "Y=\f$Y\f$" \
 						 "Kcol=\f$K_\mathrm{col}\f$" \
                          "T0=\f$T_0\f$"
 

@@ -49,10 +49,7 @@ calculation of average mass-energy transfer and absorption coefficients was adde
 The \f$\overline{g}\f$ value used during the 2003 update of the Canadian Co-60 
 air kerma primary standard was calculated with this code.
 
-Motivated by the need to generate databases for `EGSnrc` applications 
-that required the calculation of kerma, a photon-beam-only calculation (calculation type = 1) 
-was implemented in April 2006 which would finish the calculation as soon as a prescribed uncertainty had been reached. This calculation type take advantage of the faster convergence of \mutr and 1-\g 
-(when \g is small) to a desired accuracy. With this calculation type the efficiency of \muen 
+Motivated by the need to generate databases of mass-energy aborption coefficients for `EGSnrc` applications that allow calculating collision kerma, a photon-beam-only calculation (calculation type = 1) was implemented in April 2006. With this calculation type the efficiency of \muen 
 calculations is increased significantly. For instance, an efficiency increase of about a factor 
 of 70 is obtained for a 600 keV calculation in air. At around the same time, the ability to run the calculation for more than one energy on a linear or a logarithmic energy grid was added.
 Since the code calculates \muen_rho and \mutr_rho values, databases for calculating collision and total kerma can be generated.
@@ -91,6 +88,8 @@ In adition to Y, the application also outputs \f$Y_\mathrm{brems}\f$, the radiat
 the approximation incurred when ignoring all other interactions as has been customarily done in the past.
 
 \subsection g_photons Radiative fraction, mass energy transfer and absorption coefficients
+
+A derivation of the equations used in the `g` application for the calculation of several physical quantities for photon beams is presented here. Expressions for monoenergetic beams are first derived followed by a generalization to polyenergetic sources. Most of these definitions can be found in basic radiation physics textbooks, hence users more interested with practical aspects of using the code can skip to the next section \ref g_calc_types. A summary at the end of the section details the equations used in `g` to calculate the different quantities for a given calculation type.
 
 \subsubsection mono Monoenergetic beams
 
@@ -177,7 +176,7 @@ thus defining \g as the fraction of energy transferred by all photons to electro
      \overline{g} = 1 - \frac{\left<E\cdot\mu_\mathrm{en}\right>_{\phi}}{\left<E\cdot\mu_\mathrm{tr}\right>_{\phi}},
 \f}
 
-which from Eqs. (2) and (3) is equivalent to
+which from Eqs. (2), (3) and (5) is equivalent to
 
 \f{equation}{
   \overline{g} = 1 - \frac{\left<\overline{E}_\mathrm{en}\cdot\mu\right>_{\phi}}{\left<\overline{E}_\mathrm{tr}\cdot\mu\right>_{\phi}} = \frac{\left<\overline{\overline{E}}_\mathrm{rad}\cdot\mu\right>_{\phi}}{\left<\overline{E}_\mathrm{tr}\cdot\mu\right>_{\phi}}.
@@ -196,23 +195,20 @@ The energy fluence weighted average \f$\left<\mu_\mathrm{tr}/\rho\right>_{\psi}\
 and the energy fluence weighted average \f$\left<\mu_\mathrm{en}/\rho\right>_{\psi}\f$ with
 
 \f{equation}{
+     \left<\mu_\mathrm{en}/\rho\right>_{\psi} = 
+	 \frac{\left<E\cdot\mu_\mathrm{en}/\rho\right>_{\phi}}{\left<E\right>} =
+	 \frac{\left<\overline{E}_\mathrm{en}\cdot\mu\right>_{\phi}}{\left<E\right>},
+\f}
+
+or alternatively using
+
+\f{equation}{
      \left<\mu_\mathrm{en}/\rho\right>_{\psi} = \left(1-\overline{g}\right)
 	 \left<\mu_\mathrm{tr}/\rho\right>_{\psi},
 \f}
 
 from which kerma and collision kerma per unit fluence are calculated using Eqs. (9) and (11)
-respectively. Table 1 provides a summary of the equations used in `g` to compute the different photon quantities.
-
-<center>
-  Quantity     | Equation
----------------| --------
-\g             | Eq. (13)
-\mutr_rho      | Eq. (14)
-\muen_rho      | Eq. (15)
-\K             | Eq. (9)
-\Kcol          | Eq. (11)
-<b>Table 1. Summary of equations used in \g for calculating photon quantities</b>
-</center>
+respectively. 
 
 \subsubsection g_scoring Scoring algorithm for photon sources
 
@@ -236,25 +232,231 @@ particles slow down in the medium. The radiative fraction \g can be obtained fro
 
 \section g_calc_types Calculation types
 
-The application can be used in two different calculation modes, a full simulation mode
-or a photon only simulation mode.
+Calculation type can be requested using the input key `calculation type`. There are two calculation types, 0 and 1. Calculation type 0 is the default.
 
-\subsection g_calc_type_0 Photon and electron beams (type 0, default)
+\code
+  ####################################
+  # calculation types
+  #
+  # 0 (default)     : Executes fixed number of histories
+  #
+  # 1 (photon only) : Runs to desired accuracy or total number 
+  #                   of histories if no accuracy specified or
+  #                   number of histories not large enough. 
+  ####################################
+  #
+  # Uncomment line below for type 1 calculation!
+  #
+  # calculation type = 1
+\endcode
+  
+\subsection g_calc_type_0 Photon and electron beams (type 0)
 
-In its original implementation, the \c g code looped over a fixed number of histories
-for a source of photons or charged particles. After each photon interaction, the energy 
-transferred to charged particles was scored
+In its default implementation, the \c g code loops over a fixed number of histories
+for a source of \a photons or <em>charged particles</em>. This calculation can be requested either by omitting the `calculation type` input or by setting it to 0.
 
+<center>
+|  Quantity      | Equation |
+| ---------------| -------- |
+| \Y             | Eq. (1)  |
+| \g             | Eq. (13) |
+| \mutr_rho      | Eq. (14) |
+| \muen_rho      | Eq. (15) |
+| \K             | Eq. (9)  |
+| \Kcol          | Eq. (10) |
+<b>Table 1. List of equations used in \g to calculate different physical quantities using calculation type 0 (default)</b>
+</center>
+<br>
 \subsection g_calc_type_1 Photon beams only (type 1)
 
-\section g_spec Beam energy input
+Calculation type 1 can only be used with photon sources and is taylored to the efficient calculation of \muen. It takes advantage of the faster convergence of \mutr and 1-\g  (when \g is small) to a desired accuracy. The calculation finishes as soon as a prescribed uncertainty had been reached.
+
+<center>
+|  Quantity      | Equation |
+| ---------------| -------- |
+| \g             | Eq. (13) |
+| \mutr_rho      | Eq. (14) |
+| \muen_rho      | Eq. (16) |
+| \K             | Eq. (9)  |
+| \Kcol          | Eq. (11) |
+<b>Table 2. List of equations used in \g to calculate different physical quantities for calculation type 1</b>
+</center>
+
+\note If the number of histories is not large enough, the calculation will finish without reaching the desired accuracy.
+
+\subsection g_types Input examples for calculation types
+\code
+  ####################################
+  # calculation types
+  #
+  # 0 (default)     : Executes fixed number of histories
+  #
+  # 1 (photon only) : Runs to desired accuracy or total number 
+  #                   of histories if no accuracy specified or
+  #                   number of histories not large enough. 
+  ####################################
+  #
+  # Uncomment line below for type 1 calculation!
+  #
+  # calculation type = 1
+
+  ##################################
+  # Desired accuracy for mutr, muen, and 1-g
+  # (relevant only for calculation type 1)
+  ##################################
+  # accuracy = 0.0001
+
+  #####################################################################
+  # Option to provide extra information such as a efficiency gain
+  # of calculation type 1 over 0, correlation between total and radiative
+  # energy losses. Only relevant for type 1 calculations.
+  # Defaults to 'no'.
+  ####################################################################
+  # verbose = yes
+\endcode
+
+\section g_spec Source definition
+
+The definition of source parameters requires the use of an input block delimited by
+
+\code
+:Start Source Input:
+:Stop Source Input:
+\endcode
+
+The charge of the source particles is defined with the input key
+
+\code
+ Incident Charge=   0 # -1 or 1 for e- or e+
+\endcode
 
 \subsection mono_spect Monoenergetic: linear or logarithmic grids
 
-Calculations for one or several energies can be requested by the user. In the case of
-multiple energies, a linear or logarithmic energy grid can be defined.
+To define a monoenergetic source emitting particles of energy \f$E\f$, 
+the input keys required are
 
-\subsection poly_spec Polyenergetic sources
+\code
+ :Start Source Input:
+
+ INCIDENT SPECTRUM=       mono-energy
+ INCIDENT KINETIC ENERGY= Ei
+
+:Stop Source Input:
+\endcode
+
+A loop over several energies can be requested by the user using
+
+\code
+ :Start Source Input:
+
+ INCIDENT SPECTRUM=       mono-energy
+ INCIDENT KINETIC ENERGY= E1,...,EN
+
+:Stop Source Input:
+\endcode
+
+in this case the code will run individual calculations for each energy.
+
+If a large number of monoenergetic calculations are required, for instance to generate
+a database of \mutr or \muen values as function of energy, one can define a linear or 
+a logarithmic energy grid.
+
+A linear (equidistant) energy grid is defined using the input keys
+
+\code
+ :Start Source Input:
+
+ INCIDENT SPECTRUM=       mono-energy-lin-range
+ INCIDENT KINETIC ENERGY= Emin, Emax, bin-width
+
+:Stop Source Input:
+\endcode
+
+where `bin-width` is the  defining a grid of energies: Emin, ..., Emin+i*bin-width, ..., Emax
+
+A logarithmic energy grid is defined using the input keys
+
+\code
+ :Start Source Input:
+
+ INCIDENT SPECTRUM=       mono-energy-log-range
+ INCIDENT KINETIC ENERGY= Emin, Emax, N
+
+:Stop Source Input:
+\endcode
+
+the logarithmic bin width \f$\Delta_\mathrm{log}\f$ is obtained using
+
+\f{equation}{
+  \Delta_\mathrm{log} = log\left(\frac{E_\mathrm{max}}{E_\mathrm{min}}\right)/\left(N-1\right)
+\f}
+
+defining a grid of N energy values 
+
+\f{equation}{
+  E_i = e^{log(E_\mathrm{min})+i \cdot \Delta_\mathrm{log}}
+\f}
+
+\code
+#########################################################################
+### SOURCE DEFINITION
+#########################################################################
+ :Start Source Input:
+#####################
+
+ Incident Charge=   0 # -1 or 1 for e- or e+
+
+ ################################
+ # 1.25 MeV monoenergetic source
+ ################################
+ # INCIDENT SPECTRUM=       mono-energy
+ # INCIDENT KINETIC ENERGY= 1.25
+
+ ################################
+ # Multiple monoenergetic sources
+ ################################
+ # INCIDENT SPECTRUM=       mono-energy
+ # INCIDENT KINETIC ENERGY= 0.1, 0.2, 0.3, 0.4, 0.5
+ 
+################################
+ # Multiple energies on a linear grid
+ # from 100 keV to 500 keV in 100 keV intervals
+ ################################
+ # INCIDENT SPECTRUM=       mono-energy-lin-range
+ # INCIDENT KINETIC ENERGY= 0.1, 0.5, 0.1 # Emin, Emax, bin-width
+
+ ################################
+ # Multiple energies on a logarithmic grid
+ # from 100 keV to 500 keV with 10 points
+ ################################
+ # INCIDENT SPECTRUM=       mono-energy-log-range
+ # INCIDENT KINETIC ENERGY= 0.1, 0.5, 10 # Emin, Emax, Npoints
+
+ :Stop Source Input:
+####################
+\endcode
+
+
+\subsection poly_spec Polyenergetic source example: A Co-60 beam
+
+\code
+#########################################################################
+### SOURCE DEFINITION
+#########################################################################
+ :Start Source Input:
+#####################
+
+ Incident Charge=   0 # -1 or 1 for e- or e+
+ ##############################
+ # Co-60 polyenergetic source
+ ##############################
+ INCIDENT SPECTRUM= SPECTRUM
+ SPECTRUM FILE=     $HEN_HOUSE/spectra/egsnrc/co60.spectrum
+
+ :Stop Source Input:
+####################
+\endcode
+
 
 \section g_example Input examples
 
